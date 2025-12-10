@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitTrack – Upload Health Reports</title>
+
+  <link rel="stylesheet" href="styles.css">
+  <!-- pdf.js to read PDF reports (kept, though script.js reads as text) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script defer src="script.js"></script>
+</head>
+<body>
+
+  <!-- SMALL TOP BACKGROUND -->
+  <section class="page-bg-small"></section>
+
+  <section class="after-bg-section">
+    <div id="evaluation-page" class="card evaluation-card">
+
+      <h2>Upload Your Health Report</h2>
+
+      <!-- USER SUMMARY -->
+      <div id="user-summary">
+        <h3>Your Details</h3>
+        <div id="user-summary-content"></div>
+      </div>
+
+      <hr><br>
+
+      <!-- NAME ON REPORT -->
+      <label for="report-name"><strong>Name on Report (as printed):</strong></label>
+      <input type="text" id="report-name" placeholder="Enter the name mentioned on the report">
+
+      <br><br>
+
+      <!-- REPORT UPLOAD -->
+      <label for="health-report"><strong>Upload Report (PDF / TXT):</strong></label>
+      <input type="file" id="health-report" accept=".pdf,.txt">
+      <p id="report-status" class="status-text"></p>
+
+      <br>
+
+      <!-- GENDER CONFIRMATION -->
+      <label for="confirm-gender"><strong>Confirm Gender:</strong></label>
+      <select id="confirm-gender">
+        <option value="">Select</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+
+      <br><br>
+
+      <!-- CITY SELECTION FOR HOSPITAL VIEW -->
+      <label for="city-select"><strong>Select Consulting Location:</strong></label>
+      <select id="city-select">
+        <option value="">Select</option>
+        <option value="hyderabad">Hyderabad</option>
+        <option value="mumbai">Mumbai</option>
+        <option value="chennai">Chennai</option>
+        <option value="delhi">Delhi</option>
+        <option value="bangalore">Bangalore</option>
+        <option value="west_bengal">West Bengal</option>
+      </select>
+
+      <br><br>
+
+      <!-- BUTTON TO START AI EVALUATION -->
+      <button id="evaluate-btn" class="primary-btn">
+        Upload & Evaluate with AI
+      </button>
+
+      <br><br>
+
+      <!-- BACK BUTTON -->
+      <button id="back-to-register" class="secondary-btn">
+        Back to Registration
+      </button>
+
+    </div>
+  </section>
+
+  <!-- OWNER VIEW BUTTON -->
+  <button class="owner-shortcut-btn" onclick="window.location.href='owner.html'">
+    Owner View
+  </button>
+
+</body>
+</html>

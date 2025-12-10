@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitTrack – Diet & Workout Plan</title>
+
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="script.js"></script>
+</head>
+<body>
+
+  <!-- TWO IMAGES SIDE BY SIDE WITH BORDERS, LITTLE LESS HEIGHT -->
+  <div class="plans-hero">
+    <img src="healthy-food-background.jpg" alt="Healthy Food" class="plans-hero-image">
+    <img src="gym-background.jpg" alt="Gym" class="plans-hero-image">
+  </div>
+
+  <!-- SCROLL DOWN TO FOOD PREFERENCE & PLANS -->
+  <section class="after-hero-section">
+    <div id="plans-page" class="card plans-card">
+
+      <h2>Diet & Workout Plan</h2>
+
+      <!-- USER SUMMARY -->
+      <div id="plans-user">
+        <h3>Your Details</h3>
+        <div id="plans-user-content"></div>
+      </div>
+
+      <hr><br>
+
+      <p id="plans-warning" class="status-text"></p>
+
+      <!-- CONFIRM GENDER -->
+      <label for="plans-gender"><strong>Confirm Gender:</strong></label>
+      <select id="plans-gender">
+        <option value="">Select</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+
+      <br><br>
+
+      <!-- FOOD PREFERENCE -->
+      <label for="food-preference"><strong>Food Preference:</strong></label>
+      <select id="food-preference">
+        <option value="">Select</option>
+        <option value="veg">Vegetarian</option>
+        <option value="non-veg">Non-vegetarian</option>
+        <option value="vegan">Vegan</option>
+      </select>
+
+      <br><br>
+
+      <button id="generate-diet-btn" class="primary-btn">
+        Generate Diet & Workout Plan
+      </button>
+
+      <br><br>
+
+      <!-- GENERATED DIET PLAN -->
+      <div id="diet-plan-output"></div>
+
+      <br>
+
+      <!-- FINAL DOWNLOAD BUTTON (ONLY HERE, AFTER SUCCESSFUL EVAL & PLAN) -->
+      <button id="download-diet-btn" class="secondary-btn hidden">
+        Download Full Plan
+      </button>
+
+      <br><br>
+
+      <!-- BACK BUTTON -->
+      <button id="back-to-options" class="secondary-btn">
+        Back to Evaluation & Options
+      </button>
+
+    </div>
+  </section>
+
+  <!-- OWNER VIEW BUTTON -->
+  <button class="owner-shortcut-btn" onclick="window.location.href='owner.html'">
+    Owner View
+  </button>
+
+</body>
+</html>

@@ -1,0 +1,427 @@
+/* ============================================
+   GLOBAL
+============================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body {
+  background-color: #ffffff;
+  color: #1d1d1d;
+  overflow-x: hidden;
+}
+
+h1, h2, h3 {
+  color: #4cbdb0;
+  margin-bottom: 10px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.small-text {
+  font-size: 13px;
+  color: #555;
+}
+
+/* ============================================
+   INDEX PAGE
+============================================ */
+.index-fullscreen {
+  position: relative;
+  width: 100%;
+  height: 100vh;      /* full screen */
+  overflow: hidden;
+}
+
+.index-bg-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Row under the image */
+.index-button-row {
+  width: 100%;
+  margin-top: 16px;        /* gap between image and button */
+  padding: 0 16px 30px;    /* side + bottom space */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+}
+
+/* Full-width Get started button */
+.index-full-btn {
+  width: 100%;
+  border-radius: 0;
+}
+
+/* ============================================
+   FULLSCREEN BACKGROUND (register)
+============================================ */
+.register-fullscreen {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.register-bg-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Small top background (owner/evaluation) */
+.page-bg-small {
+  width: 100%;
+  height: 32vh;
+  background: url("background1.jpg") center/cover no-repeat;
+}
+
+/* Sections after any hero/background image */
+.after-hero-section,
+.after-bg-section {
+  padding: 30px 16px 50px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ============================================
+   GENERIC HERO (used in multiple pages)
+============================================ */
+.hero-wrapper {
+  width: 100%;
+  height: 100vh;        /* full screen height */
+  overflow: hidden;
+  background: #000;     /* safe background behind image */
+}
+
+.hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;    /* fill entire screen */
+  display: block;
+  filter: none;
+  opacity: 1;
+}
+
+/* ============================================
+   EVAL HERO (aidoc.jpg) – full screen with small borders
+============================================ */
+.eval-hero-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+}
+
+.eval-hero-image {
+  width: 96%;
+  height: 96%;
+  object-fit: cover;             /* full image visible */
+  border: 4px solid #4cbdb0;     /* small border */
+  border-radius: 12px;
+}
+
+/* ============================================
+   HEALTH ISSUES HERO (docs.jpg) – full screen
+============================================ */
+.health-issues-section .hero-wrapper {
+  height: 100vh;        /* full screen */
+  background: #000;
+}
+
+.health-issues-section .hero-image {
+  object-fit: cover;    /* fill the screen */
+}
+
+/* --------------------------------------------
+   Equal checkboxes & perfect alignment
+--------------------------------------------- */
+.health-issues-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.health-issues-list label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+}
+
+.health-issues-list input[type="checkbox"] {
+  width: 20px;
+  height: 20px;          /* equal checkbox size */
+  accent-color: #4cbdb0; /* green tick */
+}
+
+/* ============================================
+   PLANS HERO (two images side by side)
+============================================ */
+.plans-hero {
+  width: 100%;
+  height: 70vh;               /* reduced from 100vh */
+  display: flex;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  gap: 0;
+}
+
+.plans-hero-image {
+  flex: 1 1 50%;
+  width: 50%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border: 4px solid #4cbdb0;  /* clear border so they don't mix */
+}
+
+/* ============================================
+   CARDS
+============================================ */
+.card {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 14px;
+  padding: 22px 18px;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.08);
+}
+
+.register-card,
+.evaluation-card,
+.plans-card,
+.owner-card {
+  margin-top: 10px;
+}
+
+/* ============================================
+   FORMS
+============================================ */
+label {
+  display: block;
+  margin-top: 12px;
+  font-weight: 600;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 9px 10px;
+  margin-top: 4px;
+  border-radius: 6px;
+  border: 1px solid #aaa;
+  font-size: 14px;
+  background: #fff;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #4cbdb0;
+}
+
+form button {
+  margin-top: 20px;
+  width: 100%;
+}
+
+/* ============================================
+   BUTTONS
+============================================ */
+.primary-btn,
+.secondary-btn {
+  padding: 11px 20px;
+  background: #4cbdb0;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.25s;
+  display: inline-block;
+  text-decoration: none;
+  text-align: center;
+}
+
+.primary-btn:hover {
+  background: #3aa194;
+}
+
+.secondary-btn {
+  background: #e9e9e9;
+  color: #4cbdb0;
+  border: 1px solid #4cbdb0;
+}
+
+.secondary-btn:hover {
+  background: #d1f3ee;
+}
+
+.disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* OWNER SHORTCUT BUTTON */
+.owner-shortcut-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  padding: 9px 14px;
+  font-size: 12px;
+  border-radius: 999px;
+  background: #4cbdb0;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.25);
+  z-index: 20;
+}
+
+.owner-shortcut-btn:hover {
+  background: #3aa194;
+}
+
+/* ============================================
+   STATUS & OUTPUT
+============================================ */
+.status-text {
+  font-size: 13px;
+  color: #b30000;
+  margin-top: 5px;
+}
+
+/* diet & workout text */
+#detailed-report,
+#diet-plan-output {
+  margin-top: 10px;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 0 14px rgba(0, 0, 0, 0.07);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.eval-textarea {
+  width: 100%;
+  height: 220px;
+  margin-top: 12px;
+  padding: 10px;
+  font-size: 13px;
+}
+
+/* user summaries */
+#user-summary-content,
+#result-user-summary-content,
+#plans-user-content {
+  line-height: 1.8;
+  font-size: 14px;
+}
+
+/* ============================================
+   OPTIONS NAV (4 options in eval_result)
+============================================ */
+.options-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.option-section {
+  margin-top: 10px;
+}
+
+/* ============================================
+   HEALTH ISSUES SECTION
+============================================ */
+.health-issues-section {
+  margin-top: 20px;
+}
+
+.health-issues-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.health-issues-list label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ============================================
+   OWNER VIEW
+============================================ */
+.owner-user-card {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f3f7f7;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.owner-search-row {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.owner-search-row input {
+  flex: 1;
+}
+
+/* ============================================
+   RESPONSIVE
+============================================ */
+@media (max-width: 768px) {
+  .card {
+    padding: 18px 15px;
+  }
+
+  .plans-hero {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .plans-hero-image {
+    width: 100%;
+    height: 40vh;
+  }
+
+  .health-issues-section .hero-wrapper {
+    height: 100vh;
+  }
+
+  .index-button-row {
+    padding-bottom: 20px;
+  }
+
+  .owner-shortcut-btn {
+    right: 10px;
+    bottom: 10px;
+  }
+}

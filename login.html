@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FitTrack – Login</title>
+
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="script.js"></script>
+</head>
+<body>
+
+  <section class="page-bg-small"></section>
+
+  <section class="after-bg-section">
+    <div class="card register-card">
+      <h2>User Login</h2>
+
+      <form id="login-form">
+        <label for="login-mobile"><strong>Mobile Number:</strong></label>
+        <input type="tel" id="login-mobile" required placeholder="Enter mobile number">
+
+        <label for="login-password"><strong>Password:</strong></label>
+        <input type="password" id="login-password" required placeholder="Enter your password">
+
+        <button type="submit" class="primary-btn">Login</button>
+
+        <p id="login-status" class="status-text"></p>
+      </form>
+
+      <p class="small-text" style="margin-top:10px;">
+        New user? <a href="register.html">Register here</a>
+      </p>
+    </div>
+  </section>
+
+</body>
+</html>

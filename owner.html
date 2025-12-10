@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitTrack – Owner View</title>
+
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="script.js"></script>
+</head>
+<body>
+
+  <section class="page-bg-small"></section>
+
+  <section class="after-bg-section">
+    <div id="owner-page" class="card owner-card">
+
+      <h2>Owner View</h2>
+
+      <p class="small-text">
+        Enter password to view all users stored in the FitTrack database.
+      </p>
+
+      <!-- PASSWORD INPUT -->
+      <label for="owner-password"><strong>Password:</strong></label>
+      <input type="password" id="owner-password" placeholder="Enter owner password">
+
+      <br><br>
+      <button id="owner-login-btn" class="primary-btn">Login</button>
+
+      <p id="owner-status" class="status-text" style="margin-top: 10px;"></p>
+
+      <!-- CONTENT VISIBLE ONLY AFTER CORRECT PASSWORD -->
+      <div id="owner-users-container" class="hidden">
+        <button id="owner-download-csv-btn" class="secondary-btn" style="margin-bottom:10px;">Download Users CSV
+        </button>
+
+        <!-- SEARCH BAR -->
+        <div class="owner-search-row">
+          <input type="text" id="owner-search-input" placeholder="Search by name or mobile">
+          <button id="owner-search-btn" class="secondary-btn">Search</button>
+        </div>
+
+        <p class="small-text">Showing all users stored in MongoDB.</p>
+
+        <!-- USERS LIST -->
+        <div id="owner-users-list"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- OWNER VIEW BUTTON -->
+  <button class="owner-shortcut-btn" onclick="window.location.href='owner.html'">
+    Owner View
+  </button>
+
+</body>
+</html>
