@@ -3,6 +3,195 @@
 // ===============================================
 const API_BASE = "https://fittrack-backend-845g.onrender.com"; // ← use your Render URL
 
+
+// ===============================================
+// STEP 1: WEEKLY PLAN TABLE HELPERS (GLOBAL)
+// ===============================================
+
+// 🔹 Helper to bold ONLY the main food item
+function boldMainFood(text) {
+  if (!text) return "-";
+
+  let cleaned = text;
+
+  // ❌ Remove leading time formats like:
+  // "7:00 AM –", "07:00 AM -", "7 AM -", etc.
+  cleaned = cleaned.replace(
+    /^\s*\d{1,2}(:\d{2})?\s*(AM|PM)?\s*[-–]\s*/i,
+    ""
+  );
+
+  // Clean double spaces left after removal
+  cleaned = cleaned.replace(/\s{2,}/g, " ").trim();
+
+  // Split food and reason
+  const parts = cleaned.split(" because ");
+  if (parts.length === 1) {
+    return `<strong>${cleaned}</strong>`;
+  }
+
+  return `<strong>${parts[0]}</strong> because ${parts[1]}`;
+}
+
+
+
+// ===============================================
+// 🍽️ WEEKLY DIET PLAN TABLE
+// ===============================================
+function removeTimeFromText(text) {
+  if (!text) return "-";
+
+  return text
+    // remove "at 8:00 AM", "at 10:30 PM", etc
+    .replace(/\s+at\s+\d{1,2}(:\d{2})?\s*(AM|PM)\b/gi, "")
+    // remove standalone times like "8:00 AM"
+    .replace(/\b\d{1,2}(:\d{2})?\s*(AM|PM)\b/gi, "")
+    // cleanup extra spaces
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+
+function renderWeeklyDietTable(plan) {
+  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+  return `
+    <table class="plan-table">
+      <thead>
+        <tr>
+          <th>Day</th>
+          <th>Breakfast <br><small>07:00 AM</small></th>
+          <th>Juice <br><small>10:00 AM</small></th>
+          <th>Lunch <br><small>01:00 PM</small></th>
+          <th>Evening Snack <br><small>04:00 PM</small></th>
+          <th>Dinner <br><small>08:00 PM</small></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${days.map(day => {
+          const d = plan[day] || {};
+          return `
+            <tr>
+              <td>${day}</td>
+              <td><strong>${removeTimeFromText(d.breakfast)}</strong></td>
+              <td>${removeTimeFromText(d.juice)}</td>
+              <td><strong>${removeTimeFromText(d.lunch)}</strong></td>
+              <td>${removeTimeFromText(d.snack)}</td>
+              <td><strong>${removeTimeFromText(d.dinner)}</strong></td>
+            </tr>
+          `;
+        }).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+// ===============================================
+// 🏋️ WEEKLY WORKOUT PLAN TABLE
+// ===============================================
+function renderWeeklyWorkoutTable(plan) {
+  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+  return `
+    <table class="plan-table">
+      <thead>
+        <tr>
+          <th>Day</th>
+          <th>Workout</th>
+          <th>Duration</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${days.map(day => {
+          const w = plan[day] || {};
+          return `
+            <tr>
+              <td>${day}</td>
+              <td><strong>${w.activity || "-"}</strong></td>
+              <td>${w.duration || "-"}</td>
+              <td>${w.notes || "-"}</td>
+            </tr>
+          `;
+        }).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+
+
+function renderAny(value) {
+  if (value === null || value === undefined) return "";
+
+  // String / number
+  if (typeof value === "string" || typeof value === "number") {
+    return `<p>${value}</p>`;
+  }
+
+  // Array
+  if (Array.isArray(value)) {
+    return `
+      <ul>
+        ${value.map(v => `<li>${renderAny(v)}</li>`).join("")}
+      </ul>
+    `;
+  }
+
+  // Object
+  if (typeof value === "object") {
+    return `
+      <ul>
+        ${Object.entries(value)
+          .map(([k, v]) => `<li><b>${k}:</b> ${renderAny(v)}</li>`)
+          .join("")}
+      </ul>
+    `;
+  }
+
+  return "";
+}
+
+
+// ===============================================
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("🚀 DOM fully loaded");
+
+  // ✅ REGISTER PAGE
+  if (window.location.pathname.includes("register")) {
+    console.log("🧪 Initializing registration page");
+    initRegistration();
+  }
+
+  // ✅ EVALUATION PAGE
+  if (window.location.pathname.includes("evaluation")) {
+    initEvaluationUpload();
+  }
+
+  // ✅ PLANS PAGE
+  if (window.location.pathname.includes("plans")) {
+    initPlansPage();
+  }
+
+  // ✅ RESULT PAGE
+  if (window.location.pathname.includes("eval_result")) {
+    initEvaluationResultPage();
+  }
+});
+
+
+
+
+function showLoader() {
+  const loader = document.getElementById("loader");
+  if (loader) loader.classList.remove("hidden");
+}
+
+function hideLoader() {
+  const loader = document.getElementById("ai-loader");
+  if (loader) loader.classList.add("hidden");
+}
+
 const USERS_KEY = "fittrack_users_list";
 const CURRENT_USER_KEY = "fittrack_current_user";
 const EVAL_PAYLOAD_KEY = "fittrack_eval_payload";
@@ -14,6 +203,24 @@ const EVAL_TEXT_KEY = "fittrack_eval_text";
 const SELECTED_ISSUES_KEY = "fittrack_selected_issues";
 
 let currentUser = null;
+
+// ================================
+// GLOBAL LOADER (SAFE)
+// ================================
+let loader = null;
+
+function initLoader() {
+  loader = document.getElementById("ai-loader");
+}
+
+function showLoader() {
+  if (loader) loader.classList.remove("hidden");
+}
+
+function hideLoader() {
+  if (loader) loader.classList.add("hidden");
+}
+
 
 // ===============================================
 // STORAGE HELPERS
@@ -40,11 +247,13 @@ function loadCurrentUser() {
     const raw = localStorage.getItem(CURRENT_USER_KEY);
     if (!raw) {
       currentUser = null;
-      return;
+      return null;
     }
     currentUser = JSON.parse(raw);
+    return currentUser;
   } catch {
     currentUser = null;
+    return null;
   }
 }
 
@@ -155,8 +364,9 @@ async function backendGetOwnerUsers(adminPassword) {
   }
 }
 
+
 // ===============================================
-// REGISTRATION PAGE
+// REGISTRATION PAGE (FIXED & STABLE)
 // ===============================================
 function initRegistration() {
   const form = document.getElementById("registration-form");
@@ -167,72 +377,62 @@ function initRegistration() {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const name = document.getElementById("name").value.trim();
-    const age = document.getElementById("age").value.trim();
-    const height = Number(document.getElementById("height").value);
-    const weight = Number(document.getElementById("weight").value);
-    const gender = document.getElementById("gender").value;
-    const mobile = document.getElementById("mobile").value.trim();
+    // ✅ CORRECT IDs (MATCH HTML)
+    const name = document.getElementById("fullName")?.value.trim();
+    const age = Number(document.getElementById("age")?.value);
+    const height = Number(document.getElementById("height")?.value);
+    const weight = Number(document.getElementById("weight")?.value);
+    const gender = document.getElementById("gender").value.toLowerCase();
+    const mobile = document.getElementById("mobile")?.value.trim();
 
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-    const email = emailInput ? emailInput.value.trim() : "";
-    const password = passwordInput ? passwordInput.value : "";
-
-    if (!name || !age || !height || !weight || !gender || !mobile) {
-      if (statusEl) statusEl.innerText = "Please fill all details.";
+    const email = document.getElementById("email").value.trim();
+    if (!email) {
+      alert("Email is required");
       return;
     }
 
-    if (passwordInput && !password) {
-      if (statusEl) statusEl.innerText = "Please create a password.";
+    const password = document.getElementById("password")?.value;
+
+    console.log("REGISTER DATA →", {
+      name, age, height, weight, gender, mobile, email
+    });
+
+    // ✅ VALIDATION
+    if (!name || !age || !height || !weight || !gender || !mobile || !password) {
+      statusEl.innerText = "Please fill all required fields.";
       return;
     }
 
-    const users = cleanOldUsers();
-    const existing = users.find((u) => (u.mobile || "").trim() === mobile);
+    statusEl.innerText = "Registering...";
 
-    // If user already exists in this browser, keep old behaviour
-    if (existing) {
-      saveCurrentUser(existing);
-      if (statusEl) statusEl.innerText = "User already existed.";
-      window.location.href = "evaluation.html";
+    // ✅ BACKEND REGISTER
+    const result = await backendRegister({
+      name,
+      age,
+      height,
+      weight,
+      gender,
+      mobile,
+      email,
+      password,
+    });
+
+    if (!result.ok) {
+      statusEl.innerText = result.message || "Registration failed.";
       return;
     }
 
-    // Local user object (used by evaluation, plans, owner view)
+    // ✅ SAVE USER LOCALLY (SESSION)
     const user = { name, age, height, weight, gender, mobile, email };
-    saveUser(user);
     saveCurrentUser(user);
 
-    if (statusEl) statusEl.innerText = "";
+    statusEl.innerText = "Registration successful! Redirecting...";
 
-    // Send to backend and WAIT before redirect
-    if (passwordInput) {
-      const backendPayload = {
-        name,
-        email: email || undefined,
-        mobile,
-        password,
-        age: Number(age),
-        height,
-        weight,
-        gender,
-      };
-
-      const resInfo = await backendRegister(backendPayload);
-
-      if (!resInfo.ok && statusEl) {
-        statusEl.innerText =
-          resInfo.message ||
-          "Backend error (but local data saved). You can still continue.";
-      }
-    }
-
-    // Now go to evaluation page AFTER backend call
+    // ✅ REDIRECT (THIS WAS NEVER REACHED BEFORE)
     window.location.href = "evaluation.html";
   });
 }
+
 
 // ===============================================
 // SIMPLE REPORT READING (NO pdf.js)
@@ -251,146 +451,112 @@ function readReportFile(file) {
   });
 }
 
+
 // ===============================================
-// EVALUATION UPLOAD PAGE
+// EVALUATION UPLOAD PAGE (FIXED)
 // ===============================================
 function initEvaluationUpload() {
+  const evaluateBtn = document.getElementById("evaluateBtn");
   const reportInput = document.getElementById("health-report");
-  const evaluateBtn = document.getElementById("evaluate-btn");
-  const reportStatus = document.getElementById("report-status");
-  const confirmGender = document.getElementById("confirm-gender");
-  const citySelect = document.getElementById("city-select");
-  const backBtn = document.getElementById("back-to-register");
-  const userSummary = document.getElementById("user-summary-content");
   const reportNameInput = document.getElementById("report-name");
+  const citySelect = document.getElementById("city-select");
 
-  if (!reportInput || !evaluateBtn) return;
+  if (!evaluateBtn) return;
 
-  loadCurrentUser();
-
-  if (currentUser && userSummary) {
-    const hM = currentUser.height / 100;
-    const bmiVal =
-      currentUser.height && currentUser.weight
-        ? currentUser.weight / (hM * hM)
-        : null;
-    const bmiText =
-      bmiVal && isFinite(bmiVal)
-        ? `${bmiVal.toFixed(1)} (${
-            bmiVal < 18.5
-              ? "Underweight"
-              : bmiVal < 25
-              ? "Normal"
-              : bmiVal < 30
-              ? "Overweight"
-              : "Obese"
-          })`
-        : "Not available";
-
-    userSummary.innerHTML = `
-      <b>Name:</b> ${currentUser.name}<br>
-      <b>Age:</b> ${currentUser.age}<br>
-      <b>Height:</b> ${currentUser.height} cm<br>
-      <b>Weight:</b> ${currentUser.weight} kg<br>
-      <b>Gender:</b> ${currentUser.gender}<br>
-      <b>BMI:</b> ${bmiText}
-    `;
-  } else if (userSummary) {
-    userSummary.innerHTML =
-      "<span class='status-text'>No user in this browser. Please register first.</span>";
-  }
-
-  if (backBtn) {
-    backBtn.addEventListener("click", () => {
-      window.location.href = "register.html";
-    });
-  }
+  let cooldown = false;
 
   evaluateBtn.addEventListener("click", async () => {
+    if (cooldown) {
+      alert("Please wait 1 minute before trying again.");
+      return;
+    }
+
+    const currentUser = JSON.parse(
+      localStorage.getItem("fittrack_current_user")
+    );
+
     if (!currentUser) {
-      alert("No registered user found in this device. Please register first.");
+      alert("Session expired. Please register again.");
       window.location.href = "register.html";
       return;
     }
 
-    const genderVal = confirmGender.value;
-    let cityVal = citySelect.value;
-    const nameOnReport = reportNameInput.value.trim().toLowerCase();
-    const registeredName = currentUser.name.trim().toLowerCase();
-
-    if (!genderVal) {
-      alert("Please confirm gender.");
-      return;
-    }
-
-    if (genderVal !== currentUser.gender) {
-      alert(
-        "Selected gender does not match the registered gender. Evaluation cannot proceed."
-      );
-      return;
-    }
-
-    if (!nameOnReport) {
-      if (reportStatus)
-        reportStatus.innerText = "Please enter the name printed on the report.";
-      return;
-    }
-
-    if (nameOnReport !== registeredName) {
-      if (reportStatus)
-        reportStatus.innerText = "Please upload the registered user's report.";
-      return;
-    }
-
-    if (!cityVal) {
-      cityVal = "hyderabad";
-      citySelect.value = "hyderabad";
-    }
-
-    const file = reportInput.files[0];
+    const file = reportInput?.files?.[0];
     if (!file) {
-      if (reportStatus) reportStatus.innerText = "Please upload a report file.";
+      alert("Please upload a report file.");
       return;
     }
 
-    if (reportStatus) reportStatus.innerText = "Reading report...";
-
-    let text = "";
-    try {
-      text = await readReportFile(file);
-    } catch (err) {
-      console.error("Error reading file:", err);
-      text =
-        "The report content could not be read correctly. AI will generate a general summary based on your BMI and basic health details. Please show the original report to your doctor.";
+    const nameOnReport = reportNameInput?.value?.trim().toLowerCase();
+    if (!nameOnReport) {
+      alert("Please enter the name printed on the report.");
+      return;
     }
 
-    if (!text || !text.trim()) {
-      text =
-        "Report text is not available, but user details will still be used for a general health guidance summary. Please consult your doctor with the original report.";
+    if (nameOnReport !== currentUser.name.toLowerCase()) {
+      alert("Please upload the registered user's report only.");
+      return;
     }
 
-    const payload = {
-      text,
-      genderVal,
-      cityVal,
+    const userMeta = {
+      name: currentUser.name,
+      age: currentUser.age,
+      height: currentUser.height,
+      weight: currentUser.weight,
+      gender: currentUser.gender,
+      bmi: currentUser.bmi,
+      city: citySelect?.value || "",
     };
 
+    const formData = new FormData();
+    formData.append("report", file);
+    formData.append("userMeta", JSON.stringify(userMeta));
+
     try {
-      localStorage.setItem(EVAL_PAYLOAD_KEY, JSON.stringify(payload));
-    } catch (e) {
-      console.error(e);
-      if (reportStatus)
-        reportStatus.innerText = "Unable to store evaluation data.";
-      return;
+      cooldown = true;
+      evaluateBtn.disabled = true;
+      evaluateBtn.innerText = "Evaluating… Please wait";
+
+      const response = await fetch(`${API_BASE}/ai-evaluate-pdf`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.status === 429) {
+        throw new Error(
+          "AI is busy right now. Please wait 1 minute and try again."
+        );
+      }
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message || "AI evaluation failed");
+      }
+
+      localStorage.setItem(
+        "fittrack_ai_result",
+        JSON.stringify({
+          user: currentUser,
+          evaluation: data.evaluation,
+        })
+      );
+
+      window.location.href = "eval_result.html";
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setTimeout(() => {
+        cooldown = false;
+        evaluateBtn.disabled = false;
+        evaluateBtn.innerText = "Upload & Evaluate with AI";
+      }, 60000); // 🔒 1 minute hard lock
     }
-
-    if (reportStatus)
-      reportStatus.innerText =
-        "Report uploaded. Redirecting to evaluation page...";
-
-    window.location.href = "eval_result.html";
   });
 }
+
+
+
 
 // ===============================================
 // DISEASE DETECTION & HOSPITAL DATA
@@ -535,14 +701,18 @@ const hospitals = {
   },
 };
 
+
 // ===============================================
-// CORE EVALUATION FUNCTION
+// CORE EVALUATION FUNCTION (FIXED & STABLE)
 // ===============================================
 function runEvaluation(text, genderVal, cityVal, outputDiv, evalTextarea) {
   if (!outputDiv) return;
 
   const textLower = (text || "").toLowerCase();
 
+  // -----------------------------------------------
+  // DETECT CONDITIONS
+  // -----------------------------------------------
   const detected = [];
   for (const key in diseaseKeywords) {
     if (diseaseKeywords[key].some((kw) => textLower.includes(kw))) {
@@ -550,10 +720,16 @@ function runEvaluation(text, genderVal, cityVal, outputDiv, evalTextarea) {
     }
   }
 
-  let bmiLine = "";
-  if (currentUser && currentUser.height && currentUser.weight) {
+  // -----------------------------------------------
+  // BMI CALCULATION
+  // -----------------------------------------------
+  let bmiLine = "BMI: Not available";
+  let bmiVal = null;
+
+  if (currentUser?.height && currentUser?.weight) {
     const h = currentUser.height / 100;
-    const bmiVal = currentUser.weight / (h * h);
+    bmiVal = currentUser.weight / (h * h);
+
     const cat =
       bmiVal < 18.5
         ? "Underweight"
@@ -562,33 +738,48 @@ function runEvaluation(text, genderVal, cityVal, outputDiv, evalTextarea) {
         : bmiVal < 30
         ? "Overweight"
         : "Obese";
-    bmiLine = `BMI ≈ ${bmiVal.toFixed(1)} (${cat})`;
-  } else {
-    bmiLine = "BMI: Not available";
+
+    bmiLine = `BMI: ${bmiVal.toFixed(1)} (${cat})`;
   }
 
-  // NOTHING DETECTED
-  if (!detected.length) {
+  // ===============================================
+  // CASE 1: NOTHING DETECTED
+  // ===============================================
+  if (detected.length === 0) {
     outputDiv.innerHTML = `
-      <h3>Evaluation Result</h3>
-      <p>No strong pattern was detected from the report text for major issues like liver, lungs, kidneys, thyroid, PCOD/PCOS, sinus, migraine, cholesterol, diabetes, blood pressure or anemia.</p>
-      <p><strong>${bmiLine}</strong></p>
-      <p>This does NOT mean everything is normal. Please share this report with your doctor for proper interpretation.</p>
+      <h3>AI Overview of Medical Report</h3>
+      <p>
+        No strong organ-specific abnormalities were clearly detected from the
+        uploaded report based on keyword analysis.
+      </p>
+
+      <p><b>${bmiLine}</b></p>
+
+      <p>
+        This does NOT mean the report is normal. Some conditions require
+        clinical context, numerical values, or physical examination.
+      </p>
+
+      <p>
+        <b>Recommendation:</b> Please consult your treating doctor for a
+        complete and accurate interpretation of your report.
+      </p>
     `;
 
     if (evalTextarea) {
       const txt = `FITTRACK – AI HEALTH REPORT EVALUATION
 ======================================
 
-Name: ${currentUser ? currentUser.name : "N/A"}
+Name: ${currentUser?.name || "N/A"}
 Gender: ${genderVal || "N/A"}
 ${bmiLine}
 
-AI Summary:
-No clear pattern for specific organ-based issues was strongly detected from the uploaded report text.
-However, AI evaluation is limited and cannot replace doctor consultation.
+AI SUMMARY:
+No strong organ-specific issues were clearly detected from the uploaded report text.
 
-Kindly consult your treating doctor for final interpretation and treatment decisions.
+IMPORTANT NOTE:
+This AI evaluation is supportive only and cannot replace a qualified doctor's opinion.
+Please consult your physician for final diagnosis and treatment decisions.
 `;
       evalTextarea.value = txt;
       localStorage.setItem(EVAL_TEXT_KEY, txt);
@@ -598,35 +789,46 @@ Kindly consult your treating doctor for final interpretation and treatment decis
     return;
   }
 
+  // ===============================================
+  // CASE 2: CONDITIONS DETECTED
+  // ===============================================
   const detectedUpper = detected.map((d) => d.toUpperCase()).join(", ");
   const overviewText = `Based on your report, the AI suspects possible involvement of: ${detectedUpper}.`;
 
+  // -----------------------------------------------
+  // CONDITION DETAILS
+  // -----------------------------------------------
   let conditionDetailHtml = "";
   detected.forEach((d) => {
-    const expl = conditionExplain[d] || "";
-    const diag = nextDiagnosis[d] || "";
+    const expl = conditionExplain[d] || "Details not available.";
+    const diag = nextDiagnosis[d] || "Doctor consultation advised.";
     conditionDetailHtml += `
       <h4>${d.toUpperCase()}</h4>
       <p>${expl}</p>
-      <p><b>Recommended further tests / follow-up:</b> ${diag}</p>
-      <br>
+      <p><b>Recommended follow-up:</b> ${diag}</p>
     `;
   });
 
+  // -----------------------------------------------
+  // HOSPITAL SUGGESTIONS
+  // -----------------------------------------------
   let hospitalHtml = "";
   detected.forEach((d) => {
     const list = hospitals[cityVal]?.[d] || [];
     const lines =
       list.length > 0
         ? list.map((h) => `<li>${h}</li>`).join("")
-        : "<li>Consult a specialist or multi-speciality hospital near you.</li>";
+        : "<li>Consult a nearby specialist or multi-speciality hospital.</li>";
+
     hospitalHtml += `
       <h4>${d.toUpperCase()}</h4>
       <ul>${lines}</ul>
-      <br>
     `;
   });
 
+  // -----------------------------------------------
+  // DIAGNOSIS / TESTS
+  // -----------------------------------------------
   let diagnosisHtml = "";
   detected.forEach((d) => {
     const diag =
@@ -635,24 +837,25 @@ Kindly consult your treating doctor for final interpretation and treatment decis
     diagnosisHtml += `<p><b>${d.toUpperCase()}:</b> ${diag}</p>`;
   });
 
+  // -----------------------------------------------
+  // MAIN HTML OUTPUT
+  // -----------------------------------------------
   outputDiv.innerHTML = `
     <div class="options-nav">
-      <button class="secondary-btn option-btn" data-target="overview-section">Overview of the Reports</button>
+      <button class="secondary-btn option-btn" data-target="overview-section">Overview</button>
       <button class="secondary-btn option-btn" data-target="hospital-section">Hospital View</button>
-      <button class="secondary-btn option-btn" data-target="diagnosis-section">Medical Diagnosis</button>
+      <button class="secondary-btn option-btn" data-target="diagnosis-section">Further Tests</button>
     </div>
 
     <div id="overview-section" class="option-section">
-      <h3>Overview of the Reports</h3>
+      <h3>AI Overview of Medical Report</h3>
       <p><strong>${overviewText}</strong></p>
-      <p><strong>${bmiLine}</strong></p>
-      <p><b>Detailed organ-wise explanation:</b></p>
+      <p><b>${bmiLine}</b></p>
       ${conditionDetailHtml}
     </div>
 
     <div id="hospital-section" class="option-section hidden">
       <h3>Hospital View</h3>
-      <p>Based on your selected city and the health areas, here are some suggested hospitals and specialists:</p>
       ${hospitalHtml}
     </div>
 
@@ -662,45 +865,45 @@ Kindly consult your treating doctor for final interpretation and treatment decis
     </div>
   `;
 
+  // -----------------------------------------------
+  // TAB SWITCHING
+  // -----------------------------------------------
   const btns = outputDiv.querySelectorAll(".option-btn");
   const sections = outputDiv.querySelectorAll(".option-section");
+
   btns.forEach((btn) => {
     btn.addEventListener("click", () => {
       const targetId = btn.getAttribute("data-target");
-      sections.forEach((sec) => {
-        if (sec.id === targetId) sec.classList.remove("hidden");
-        else sec.classList.add("hidden");
-      });
+      sections.forEach((sec) =>
+        sec.id === targetId
+          ? sec.classList.remove("hidden")
+          : sec.classList.add("hidden")
+      );
     });
   });
 
+  // -----------------------------------------------
+  // TEXT VERSION FOR DOWNLOAD
+  // -----------------------------------------------
   if (evalTextarea) {
+    let textExplain = "";
     let textHospitals = "";
+    let textDiag = "";
+
     detected.forEach((d) => {
+      textExplain += `\n${d.toUpperCase()}:\n${conditionExplain[d] || ""}\n`;
+      textDiag += `\n${d.toUpperCase()}:\n${nextDiagnosis[d] || ""}\n`;
+
       const list = hospitals[cityVal]?.[d] || [];
       textHospitals += `\n${d.toUpperCase()}:\n${
-        list.length ? list.join("\n") : "  - Consult nearby specialist."
+        list.length ? list.join("\n") : "Consult nearby specialist."
       }\n`;
-    });
-
-    let textDiag = "";
-    detected.forEach((d) => {
-      const diag =
-        nextDiagnosis[d] ||
-        "Regular follow-up tests and doctor consultation advised.";
-      textDiag += `\n${d.toUpperCase()}:\n${diag}\n`;
-    });
-
-    let textExplain = "";
-    detected.forEach((d) => {
-      const expl = conditionExplain[d] || "";
-      textExplain += `\n${d.toUpperCase()} – Explanation:\n${expl}\n`;
     });
 
     const txt = `FITTRACK – AI HEALTH REPORT EVALUATION
 ======================================
 
-Name: ${currentUser ? currentUser.name : "N/A"}
+Name: ${currentUser?.name || "N/A"}
 Gender: ${genderVal || "N/A"}
 ${bmiLine}
 
@@ -712,26 +915,25 @@ DETAILED EXPLANATION
 --------------------
 ${textExplain}
 
-SUGGESTED HOSPITALS (based on city):
-------------------------------------
+SUGGESTED HOSPITALS
+------------------
 ${textHospitals}
 
-RECOMMENDED FOLLOW-UP TESTS:
-----------------------------
+RECOMMENDED TESTS
+-----------------
 ${textDiag}
 
 NOTE:
 This is an AI-generated supportive summary only.
-It cannot replace physical examination and advice from a qualified doctor.
-Please discuss this evaluation with your treating physician.
+It does NOT replace consultation with a qualified doctor.
 `;
     evalTextarea.value = txt;
     localStorage.setItem(EVAL_TEXT_KEY, txt);
   }
 
-  const primary = detected[0] || "general";
-  localStorage.setItem(LAST_EVAL_KEY, primary);
+  localStorage.setItem(LAST_EVAL_KEY, detected[0]);
 }
+
 
 // ===============================================
 // TEXT HELPERS
@@ -746,14 +948,25 @@ function stripHtml(html) {
 // EVAL RESULT PAGE
 // ===============================================
 function initEvaluationResultPage() {
+
+  let rawAI = localStorage.getItem("fittrack_ai_result");
+
+  if (!rawAI) {
+    alert("AI evaluation not found. Please upload and evaluate your report first.");
+    window.location.href = "evaluation.html";
+    return;
+  }
+
   const anyEvalElement =
     document.getElementById("detailed-report") ||
     document.getElementById("eval-text") ||
     document.getElementById("go-to-health-issues") ||
     document.getElementById("back-to-upload");
 
-  if (!anyEvalElement) return;
-
+  if (!anyEvalElement) {
+    console.warn("Evaluation result page elements not fully loaded yet.");
+  }
+    
   let detailedReportDiv = document.getElementById("detailed-report");
   if (!detailedReportDiv) {
     detailedReportDiv = document.createElement("div");
@@ -773,6 +986,12 @@ function initEvaluationResultPage() {
   }
 
   const backBtn = document.getElementById("back-to-upload");
+  if (backBtn) {
+    backBtn.addEventListener("click", () => {
+      window.location.href = "evaluation.html";
+    });
+  }
+
   const goHealthIssuesBtn = document.getElementById("go-to-health-issues");
   const resultUserSummary = document.getElementById(
     "result-user-summary-content"
@@ -780,6 +999,17 @@ function initEvaluationResultPage() {
 
   loadCurrentUser();
 
+  const backBtnSafe = document.getElementById("back-to-upload");
+  if (backBtnSafe) {
+    backBtnSafe.onclick = () => {
+      window.location.href = "evaluation.html";
+    };
+  }
+
+  if (loader) loader.classList.add("hidden");
+
+
+  /* ================= USER SUMMARY ================= */
   if (currentUser && resultUserSummary) {
     const hM = currentUser.height / 100;
     const bmiVal =
@@ -812,24 +1042,92 @@ function initEvaluationResultPage() {
       "<span class='status-text'>No user registered. Please register first.</span>";
   }
 
-  const raw = localStorage.getItem(EVAL_PAYLOAD_KEY);
-  if (!raw) {
-    detailedReportDiv.innerHTML =
-      "<p class='status-text'>No report found. Please upload your report first.</p>";
+  /* ================= AI RESULT ================= */
+
+  if (!rawAI) {
+    detailedReportDiv.innerHTML = `
+      <p class="status-text">
+        AI evaluation data not found.<br>
+        Please upload and evaluate your medical report again.
+      </p>
+    `;
     return;
   }
 
-  const payload = JSON.parse(raw);
-  const { text, genderVal, cityVal } = payload;
-
-  if (!currentUser || genderVal !== currentUser.gender) {
-    detailedReportDiv.innerHTML =
-      "<p class='status-text'>Gender mismatch detected. Evaluation is not allowed.</p>";
+  let aiPayload;
+  try {
+    aiPayload = JSON.parse(rawAI);
+  } catch (e) {
+    detailedReportDiv.innerHTML = `
+      <p class="status-text">
+        AI result is corrupted.<br>
+        Please re-upload your medical report.
+      </p>
+    `;
     return;
   }
 
-  runEvaluation(text, genderVal, cityVal, detailedReportDiv, evalTextarea);
+  const { user, evaluation } = aiPayload || {};
 
+  if (!evaluation || typeof evaluation !== "object") {
+    detailedReportDiv.innerHTML = `
+      <p class="status-text">
+        No AI evaluation found.<br>
+        Please upload and evaluate your medical report first.
+      </p>
+    `;
+    return;
+  }
+
+  /* ================= RENDER AI CONTENT ================= */
+  detailedReportDiv.innerHTML = `
+    <h3>AI Overview of Medical Report</h3>
+    <p>${evaluation.overview || "Overview not available."}</p>
+
+    <h3>Medical Evaluation</h3>
+    <p>${evaluation.evaluation || "Evaluation not available."}</p>
+
+    <h3>Diet & Nutrition Suggestions</h3>
+    <p>${evaluation.diet || "Diet suggestions not available."}</p>
+
+    <h3>Suggested Doctors</h3>
+    <ul>
+      ${
+        Array.isArray(evaluation.doctors) && evaluation.doctors.length
+          ? evaluation.doctors
+              .map(
+                (d) => `
+                <li>
+                  <b>${d.name || "Doctor"}</b><br>
+                  ${d.specialization || ""}<br>
+                  ${d.hospital || ""}, ${d.location || ""}<br>
+                  <i>(${d.type || "hospital"})</i>
+                </li>
+              `
+              )
+              .join("")
+          : "<li>No doctor suggestions provided by AI.</li>"
+      }
+    </ul>
+
+    <h3>Further Diagnosis / Tests</h3>
+    <ul>
+      ${
+        Array.isArray(evaluation.furtherDiagnosis) &&
+        evaluation.furtherDiagnosis.length
+          ? evaluation.furtherDiagnosis.map((x) => `<li>${x}</li>`).join("")
+          : "<li>No further tests suggested.</li>"
+      }
+    </ul>
+
+    ${
+      evaluation.limitations
+        ? `<p class="small-text"><i>AI Limitation:</i> ${evaluation.limitations}</p>`
+        : ""
+    }
+  `;
+
+  /* ================= BUTTONS ================= */
   if (backBtn) {
     backBtn.addEventListener("click", () => {
       window.location.href = "evaluation.html";
@@ -842,6 +1140,7 @@ function initEvaluationResultPage() {
     });
   }
 }
+
 
 // ===============================================
 // HEALTH ISSUES PAGE (ONLY ONCE)
@@ -938,6 +1237,223 @@ function showHealthIssuesPage(rootCard, evalContentDiv) {
 // ===============================================
 // DIET & WORKOUT PAGE
 // ===============================================
+function generateDietWorkoutPlan({ bmi, gender, preference }) {
+  let diet = [];
+  let workout = [];
+
+  // BMI category
+  let bmiType =
+    bmi < 18.5 ? "underweight" :
+    bmi < 25 ? "normal" :
+    bmi < 30 ? "overweight" : "obese";
+
+  // ===== DIET =====
+  if (preference === "Vegetarian") {
+    diet.push(
+      "Breakfast: Vegetable upma / oats with nuts",
+      "Lunch: Rice + dal + leafy vegetables",
+      "Dinner: Chapati + paneer/tofu curry",
+      "Snacks: Fruits, sprouts, nuts"
+    );
+  }
+
+  if (preference === "Non-vegetarian") {
+    diet.push(
+      "Breakfast: Eggs / oats",
+      "Lunch: Rice + chicken/fish curry",
+      "Dinner: Chapati + lean meat",
+      "Snacks: Fruits, boiled eggs"
+    );
+  }
+
+  if (preference === "Vegan") {
+    diet.push(
+      "Breakfast: Oats with seeds & fruits",
+      "Lunch: Rice + lentils + vegetables",
+      "Dinner: Chapati + tofu/beans",
+      "Snacks: Fruits, nuts, roasted chana"
+    );
+  }
+
+  // BMI adjustment
+  if (bmiType === "underweight") {
+    diet.push("Increase calories using healthy fats and proteins.");
+  }
+  if (bmiType === "overweight" || bmiType === "obese") {
+    diet.push("Reduce sugar, fried food, and refined carbs.");
+  }
+
+  // ===== WORKOUT =====
+  if (gender === "female") {
+    workout.push(
+      "Brisk walking – 30 minutes",
+      "Yoga & stretching – 15 minutes",
+      "Lower body strengthening – squats, leg raises"
+    );
+  } else {
+    workout.push(
+      "Jogging or cycling – 30 minutes",
+      "Strength training – push-ups, planks",
+      "Core exercises – 10 minutes"
+    );
+  }
+
+  if (bmiType === "underweight") {
+    workout.push("Focus on strength, avoid excessive cardio.");
+  }
+  if (bmiType === "obese") {
+    workout.push("Low-impact cardio, avoid joint strain.");
+  }
+
+  return {
+    diet,
+    workout,
+    bmiType
+  };
+}
+
+// ===============================================
+// INIT PLANS PAGE
+// ===============================================
+
+// 🔁 Normalize current user data
+let user =
+  JSON.parse(localStorage.getItem("fittrack_current_user")) ||
+  JSON.parse(localStorage.getItem("fittrack_user")) ||
+  null;
+
+// If user exists but BMI missing, calculate it
+if (user && user.height && user.weight && !user.bmi) {
+  const h = Number(user.height) / 100;
+  user.bmi = Number((user.weight / (h * h)).toFixed(1));
+  localStorage.setItem("fittrack_current_user", JSON.stringify(user));
+}
+
+// Final safety
+if (user) {
+  localStorage.setItem("fittrack_current_user", JSON.stringify(user));
+}
+
+function renderDietTable(dietPlan) {
+  const days = [
+    "Sunday","Monday","Tuesday",
+    "Wednesday","Thursday","Friday","Saturday"
+  ];
+
+  return `
+    <h3>🥗 AI-Generated Weekly Diet Plan</h3>
+    <table class="plan-table">
+      <thead>
+        <tr>
+          <th>Day</th>
+          <th>Breakfast</th>
+          <th>Juice</th>
+          <th>Lunch</th>
+          <th>Snack</th>
+          <th>Dinner</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${days.map(day => `
+          <tr>
+            <td><b>${day}</b></td>
+            <td>${dietPlan[day]?.breakfast || "-"}</td>
+            <td>${dietPlan[day]?.juice || "-"}</td>
+            <td>${dietPlan[day]?.lunch || "-"}</td>
+            <td>${dietPlan[day]?.snack || "-"}</td>
+            <td>${dietPlan[day]?.dinner || "-"}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+
+
+function renderWeeklyDietTable(dietPlan) {
+  const days = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+
+  return `
+    <h3>🥗 AI-Generated Weekly Diet Plan</h3>
+    <table class="plan-table">
+      <thead>
+        <tr>
+          <th>Day</th>
+          <th>Breakfast<br><small>07:00 AM</small></th>
+          <th>Juice<br><small>10:00 AM</small></th>
+          <th>Lunch<br><small>01:00 PM</small></th>
+          <th>Evening Snack<br><small>04:00 PM</small></th>
+          <th>Dinner<br><small>08:00 PM</small></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${days
+          .map(
+            (day) => `
+          <tr>
+            <td><b>${day}</b></td>
+            <td>${dietPlan[day]?.breakfast || "-"}</td>
+            <td>${dietPlan[day]?.juice || "-"}</td>
+            <td>${dietPlan[day]?.lunch || "-"}</td>
+            <td>${dietPlan[day]?.snack || "-"}</td>
+            <td>${dietPlan[day]?.dinner || "-"}</td>
+          </tr>
+        `
+          )
+          .join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function renderWorkoutTable(workoutPlan) {
+  const days = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday"
+  ];
+
+  return `
+    <h3>🏋️ AI-Generated Weekly Workout Plan</h3>
+    <table class="plan-table">
+      <thead>
+        <tr>
+          <th>Day</th>
+          <th>Warm-up</th>
+          <th>Main Workout</th>
+          <th>Cool Down</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${days.map(day => `
+          <tr>
+            <td><b>${day}</b></td>
+            <td>${workoutPlan[day]?.warmup || "-"}</td>
+            <td>${workoutPlan[day]?.mainWorkout || "-"}</td>
+            <td>${workoutPlan[day]?.cooldown || "-"}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+
+
+
 function initPlansPage() {
   const page = document.getElementById("plans-page");
   if (!page) return;
@@ -946,132 +1462,128 @@ function initPlansPage() {
   const foodSel = document.getElementById("food-preference");
   const generateBtn = document.getElementById("generate-diet-btn");
   const outputDiv = document.getElementById("diet-plan-output");
-  const downloadBtn = document.getElementById("download-diet-btn");
   const warning = document.getElementById("plans-warning");
-  const userBox = document.getElementById("plans-user-content");
-  const backBtn = document.getElementById("back-to-options");
 
-  loadCurrentUser();
+  let isRequestRunning = false;
 
-  if (currentUser && userBox) {
-    const h = currentUser.height / 100;
-    const bmiVal = currentUser.weight / (h * h);
-    const bmiText = isFinite(bmiVal)
-      ? `${bmiVal.toFixed(1)} (${
-          bmiVal < 18.5
-            ? "Underweight"
-            : bmiVal < 25
-            ? "Normal"
-            : bmiVal < 30
-            ? "Overweight"
-            : "Obese"
-        })`
-      : "Not available";
+  // ❌ DO NOT CALL API HERE
 
-    userBox.innerHTML = `
-      <b>Name:</b> ${currentUser.name}<br>
-      <b>Age:</b> ${currentUser.age}<br>
-      <b>Gender:</b> ${currentUser.gender}<br>
-      <b>BMI:</b> ${bmiText}
-    `;
-  } else if (userBox) {
-    userBox.innerHTML =
-      "<span class='status-text'>No user registered. Please register and evaluate first.</span>";
+  generateBtn.onclick = async () => {
+    if (isRequestRunning) return;
+    isRequestRunning = true;
+
+    warning.innerText = "";
+    outputDiv.innerHTML = "";
+
+    const user = JSON.parse(localStorage.getItem("fittrack_current_user"));
+
+    if (
+      !user ||
+      user.age == null ||
+      user.height == null ||
+      user.weight == null ||
+      user.bmi == null
+    ) {
+      warning.innerText =
+        "User details missing. Please re-register or complete evaluation.";
+      isRequestRunning = false;
+      return;
+    }
+
+    const payload = {
+      age: Number(user.age),
+      gender: genderSel.value,
+      height: Number(user.height),
+      weight: Number(user.weight),
+      bmi: Number(user.bmi),
+      preference: foodSel.value,
+    };
+
+    console.log("📤 Sending payload:", payload);
+
+    try {
+      const res = await fetch(`${API_BASE}/ai-diet-workout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      console.log("AI FULL RESPONSE:", data);
+
+      // 🚨 IMPORTANT CHECK
+      if (!data.success) {
+        document.getElementById("plans-warning").innerText =
+          data.message || "AI failed to generate plan. Try again later.";
+        return; // ⛔ STOP HERE
+      }
+
+      // ✅ ONLY render if AI SUCCESS
+      document.getElementById("plans-warning").innerText = "";
+
+      document.getElementById("diet-plan-output").innerHTML =
+        renderDietTable(data.dietPlan);
+
+      document.getElementById("workout-plan-output").innerHTML =
+        renderWorkoutTable(data.workoutPlan);
+
+
+
+      if (!res.ok) {
+        warning.innerText = data.message || "AI failed.";
+        isRequestRunning = false;
+        return;
+      }
+
+      // ----------------------------
+      // 🔴 REPLACE where you currently do innerText / paragraph rendering
+      // ----------------------------
+      if (!data.success) {
+        warning.innerText = data.message || "AI failed";
+        isRequestRunning = false;
+        return;
+      }
+
+      outputDiv.innerHTML =
+        renderWeeklyDietTable(data.dietPlan) +
+        "<br><br>" +
+        renderWorkoutTable(data.workoutPlan);
+
+    } catch (err) {
+      console.error(err);
+      warning.innerText = "Server error. Try again later.";
+    }
+
+    isRequestRunning = false;
+  };
+}
+
+
+
+
+// ================================
+// STEP 3B: LOAD DIET & WORKOUT PLAN
+// ================================
+async function loadDietWorkoutPlan() {
+  // ✅ USE CORRECT SESSION KEY
+  const user = JSON.parse(localStorage.getItem("fittrack_current_user"));
+
+  // ✅ SAFETY CHECK
+  if (!user) {
+    alert("Session expired. Please login again.");
+    window.location.href = "login.html";
+    return;
   }
 
-  if (backBtn) {
-    backBtn.addEventListener("click", () => {
-      window.location.href = "eval_result.html";
-    });
-  }
-
-  if (generateBtn) {
-    generateBtn.addEventListener("click", () => {
-      if (!currentUser) {
-        if (warning)
-          warning.innerText = "No registered user. Please register first.";
-        return;
-      }
-
-      const g = genderSel.value;
-      const f = foodSel.value;
-
-      if (!g || !f) {
-        if (warning)
-          warning.innerText = "Please select gender and food preference.";
-        return;
-      }
-
-      if (g !== currentUser.gender) {
-        if (warning)
-          warning.innerText =
-            "Selected gender does not match registered gender. Plan cannot be generated.";
-        return;
-      }
-
-      if (warning) warning.innerText = "";
-
-      const dietHtml = buildDietPlan(f, g);
-      const workoutHtml = buildWorkoutPlan(g);
-
-      if (outputDiv) {
-        outputDiv.innerHTML = `
-          <h3>Your Diet Plan</h3>
-          <p>${dietHtml}</p>
-          <h3 style="margin-top:16px;">Your Workout Plan</h3>
-          <p>${workoutHtml}</p>
-        `;
-      }
-
-      const evalText = localStorage.getItem(EVAL_TEXT_KEY) || "";
-      let selectedIssues = [];
-      try {
-        selectedIssues = JSON.parse(
-          localStorage.getItem(SELECTED_ISSUES_KEY) || "[]"
-        );
-      } catch {
-        selectedIssues = [];
-      }
-
-      const issuesText =
-        selectedIssues.length > 0
-          ? "Selected Health Issues:\n- " + selectedIssues.join("\n- ")
-          : "Selected Health Issues: None selected.";
-
-      const dietPlain = stripHtml(dietHtml);
-      const workoutPlain = stripHtml(workoutHtml);
-
-      const finalText = `
-${evalText}
-
-${issuesText}
-
-DIET PLAN
----------
-${dietPlain}
-
-WORKOUT PLAN
-------------
-${workoutPlain}
-`;
-
-      if (downloadBtn) {
-        downloadBtn.textContent =
-          "Download Full Plan (Evaluation + Issues + Diet + Workout)";
-        downloadBtn.classList.remove("hidden");
-        downloadBtn.onclick = () => {
-          const blob = new Blob([finalText], { type: "text/plain" });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "Full_Health_Plan.txt";
-          a.click();
-          URL.revokeObjectURL(url);
-        };
-      }
-    });
+  // ✅ CALCULATE BMI SAFELY
+  let bmi = null;
+  if (user.height && user.weight) {
+    const hM = user.height / 100;
+    bmi = +(user.weight / (hM * hM)).toFixed(1);
   }
 }
+
 
 // ===============================================
 // GENDER-AWARE DIET & WORKOUT
@@ -1269,10 +1781,6 @@ function initOwnerPage() {
   }
 }  
 
-
-
-
-
 // ===============================================
 // LOGIN PAGE
 // ===============================================
@@ -1316,6 +1824,16 @@ function initLoginPage() {
       });
     }
 
+    if (response.ok) {
+      // ✅ SAVE LOGIN SESSION (OPTION A)
+      localStorage.setItem("fittrack_token", data.token);
+      localStorage.setItem("fittrack_current_user", JSON.stringify(data.user));
+
+      // optional: redirect
+      window.location.href = "plans.html";
+    }
+
+
     try {
       localStorage.setItem("fittrack_auth_token", token || "");
     } catch {}
@@ -1329,13 +1847,123 @@ function initLoginPage() {
 // PAGE CONTROLLER
 // ===============================================
 document.addEventListener("DOMContentLoaded", () => {
-  cleanOldUsers();
-  loadCurrentUser();
+  console.log("script.js loaded");
 
-  initRegistration();
-  initLoginPage();          // ← NEW
-  initEvaluationUpload();
-  initEvaluationResultPage();
+  initLoader(); // ✅ THIS LINE IS IMPORTANT
+
+  if (document.getElementById("health-report")) {
+    console.log("evaluation.html detected");
+    initEvaluationUpload();
+  }
+
+  if (document.getElementById("detailed-report")) {
+    console.log("eval_result.html detected");
+    initEvaluationResultPage();
+  }
+});
+
+/* ===========================
+   REGISTER PAGE LOGIC
+=========================== */
+const registerBtn = document.getElementById("registerBtn");
+if (registerBtn) {
+  registerBtn.addEventListener("click", async (e) => {
+    e.preventDefault(); // 
+    console.log("Register button clicked");
+
+    // ✅ READ VALUES INSIDE CLICK
+    const name = document.getElementById("fullName")?.value.trim();
+    const age = document.getElementById("age")?.value;
+    const height = document.getElementById("height")?.value;
+    const weight = document.getElementById("weight")?.value;
+    const gender = document.getElementById("gender")?.value;
+    const mobile = document.getElementById("mobile")?.value.trim();
+    const email = document.getElementById("email")?.value.trim();
+    const password = document.getElementById("password")?.value;
+
+    console.log({ name, age, height, weight, gender, mobile, email });
+
+    // ✅ VALIDATION
+    if (!name || !age || !height || !weight || !gender || !mobile || !password) {
+      alert("Please fill all required fields");
+      return;
+    }
+
+    try {
+      // ✅ SEND TO BACKEND
+      const resp = await fetch(`${API_BASE}/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,        // ✅ FIXED
+          age,
+          height,
+          weight,
+          gender,
+          mobile,
+          email,
+          password,
+        }),
+      });
+
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        alert(data.message || "Registration failed");
+        return;
+      }
+
+      // ✅ SAVE USER LOCALLY
+      const newUser = {
+        name,        // ✅ FIXED
+        age,
+        height,
+        weight,
+        gender,
+        mobile,
+        email,
+      };
+
+      const users = getStoredArray(USERS_KEY);
+
+      const existingUser = users.find((u) => u.mobile === mobile);
+
+      if (existingUser) {
+        localStorage.setItem(
+          CURRENT_USER_KEY,
+          JSON.stringify(existingUser)
+        );
+        window.location.href = "evaluation.html";
+        return;
+      }
+
+      users.push(newUser);
+      setStoredArray(USERS_KEY, users);
+
+      localStorage.setItem(
+        CURRENT_USER_KEY,
+        JSON.stringify(newUser)
+      );
+
+      console.log("User registered successfully", newUser);
+
+      // ✅ REDIRECT
+      window.location.href = "evaluation.html";
+
+    } catch (err) {
+      console.error("Registration error:", err);
+      alert("Network error during registration");
+    }
+  });
+}
+
+// keep this as-is
+if (window.location.pathname.includes("plans")) {
+  loadDietWorkoutPlan();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
   initPlansPage();
-  initOwnerPage();
 });

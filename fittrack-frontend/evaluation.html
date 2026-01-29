@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FitTrack – Upload Health Reports</title>
 
-  <link rel="stylesheet" href="styles.css">
-  <!-- pdf.js to read PDF reports (kept, though script.js reads as text) -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- pdf.js (kept, safe) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
+  <!-- main JS -->
   <script defer src="script.js"></script>
 </head>
 <body>
@@ -30,13 +33,17 @@
 
       <!-- NAME ON REPORT -->
       <label for="report-name"><strong>Name on Report (as printed):</strong></label>
-      <input type="text" id="report-name" placeholder="Enter the name mentioned on the report">
+      <input
+        type="text"
+        id="report-name"
+        placeholder="Enter the name mentioned on the report"
+      />
 
       <br><br>
 
       <!-- REPORT UPLOAD -->
       <label for="health-report"><strong>Upload Report (PDF / TXT):</strong></label>
-      <input type="file" id="health-report" accept=".pdf,.txt">
+      <input type="file" id="health-report" accept=".pdf,.txt" />
       <p id="report-status" class="status-text"></p>
 
       <br>
@@ -51,7 +58,7 @@
 
       <br><br>
 
-      <!-- CITY SELECTION FOR HOSPITAL VIEW -->
+      <!-- CITY SELECTION -->
       <label for="city-select"><strong>Select Consulting Location:</strong></label>
       <select id="city-select">
         <option value="">Select</option>
@@ -65,12 +72,35 @@
 
       <br><br>
 
-      <!-- BUTTON TO START AI EVALUATION -->
-      <button id="evaluate-btn" class="primary-btn">
+
+      <!-- EVALUATE BUTTON -->
+      <button id="evaluateBtn" type="button">
         Upload & Evaluate with AI
       </button>
 
       <br><br>
+
+      <div id="ai-loader" class="hidden">
+        <div class="spinner"></div>
+        <p>AI is analyzing your report… Please wait</p>
+      </div>
+
+
+
+      <!-- AI STATUS (HIDDEN BY DEFAULT) -->
+      <div
+        id="ai-status"
+        class="status-text"
+        style="display:none;"
+      ></div>
+
+      <!-- AI RESULT (HIDDEN BY DEFAULT) -->
+      <div
+        id="ai-result"
+        style="display:none; margin-top:20px;"
+      ></div>
+
+      <br>
 
       <!-- BACK BUTTON -->
       <button id="back-to-register" class="secondary-btn">
@@ -80,8 +110,11 @@
     </div>
   </section>
 
-  <!-- OWNER VIEW BUTTON -->
-  <button class="owner-shortcut-btn" onclick="window.location.href='owner.html'">
+  <!-- OWNER VIEW -->
+  <button
+    class="owner-shortcut-btn"
+    onclick="window.location.href='owner.html'"
+  >
     Owner View
   </button>
 

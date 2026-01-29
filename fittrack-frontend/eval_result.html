@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FitTrack – AI Report Evaluation</title>
+
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="script.js"></script>
+
+  <style>
+    /* REMOVE UNWANTED GAPS */
+    #detailed-report h3,
+    #detailed-report h4 {
+      margin-bottom: 4px;
+    }
+
+    #detailed-report p {
+      margin-top: 0;
+    }
+
+    #health-issues-section {
+      margin-top: 0;
+      padding-top: 0;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- HERO IMAGE -->
+  <div class="hero-wrapper eval-hero-wrapper">
+    <img src="aidoc.jpg" class="hero-image eval-hero-image" alt="AI Doctor Evaluation">
+  </div>
+
+  <!-- CONTENT -->
+  <section class="after-hero-section">
+    <div id="eval-result-page" class="card evaluation-card">
+
+      <h2>Your Report Evaluation</h2>
+
+      <!-- USER SUMMARY -->
+      <div id="result-user-summary">
+        <h3>Your Details</h3>
+        <div id="result-user-summary-content"></div>
+      </div>
+
+      <hr>
+
+      <!-- AI EVALUATION (NO GAP BELOW HEADINGS) -->
+      <div id="detailed-report">
+        <!-- Filled by script.js -->
+      </div>
+
+      <!-- HIDDEN TEXT FOR DOWNLOAD -->
+      <textarea id="eval-text" class="eval-textarea hidden" readonly></textarea>
+
+      <!-- NAV BUTTONS -->
+      <div class="button-row">
+        <button id="go-to-health-issues" class="primary-btn">
+          Continue to Health Issues Selection
+        </button>
+
+        <button id="back-to-upload" class="secondary-btn">
+          Back to Upload Page
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- OWNER -->
+  <button class="owner-shortcut-btn" onclick="window.location.href='owner.html'">
+    Owner View
+  </button>
+
+  <!-- LOADER -->
+  <div id="loader" style="
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.4);
+    z-index:9999;
+    align-items:center;
+    justify-content:center;
+  ">
+    <div style="
+      width:50px;
+      height:50px;
+      border:5px solid #ccc;
+      border-top-color:#16a085;
+      border-radius:50%;
+      animation:spin 1s linear infinite;
+    "></div>
+  </div>
+
+  <style>
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+
+</body>
+</html>

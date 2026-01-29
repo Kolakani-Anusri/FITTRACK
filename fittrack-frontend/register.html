@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FitTrack – User Registration</title>
+
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="script.js"></script>
+</head>
+<body>
+
+  <!-- FULLSCREEN BACKGROUND IMAGE (NO TEXT ON IT) -->
+  <div class="register-fullscreen">
+    <img src="background1.jpg" alt="Background" class="register-bg-image">
+  </div>
+
+  <!-- SCROLL DOWN TO REGISTRATION FORM -->
+  <section class="after-hero-section">
+    <div class="card register-card">
+
+      <h2>User Registration</h2>
+
+      <form id="registration-form" onsubmit="return false;">
+        <!-- FULL NAME -->
+        <label for="fullName"><strong>Full Name:</strong></label>
+        <input
+          type="text"
+          id="fullName"
+          placeholder="Enter full name"
+          required
+        >
+
+        <!-- AGE -->
+        <label for="age"><strong>Age:</strong></label>
+        <input
+          type="number"
+          id="age"
+          placeholder="Enter age"
+          required
+        >
+
+        <!-- HEIGHT -->
+        <label for="height"><strong>Height (cm):</strong></label>
+        <input
+          type="number"
+          id="height"
+          placeholder="Enter height in cm"
+          required
+        >
+
+        <!-- WEIGHT -->
+        <label for="weight"><strong>Weight (kg):</strong></label>
+        <input
+          type="number"
+          id="weight"
+          placeholder="Enter weight in kg"
+          required
+        >
+
+        <!-- GENDER -->
+        <label for="gender"><strong>Gender:</strong></label>
+        <select id="gender" required>
+          <option value="">Select</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+
+        <!-- MOBILE -->
+        <label for="mobile"><strong>Mobile Number:</strong></label>
+        <input
+          type="tel"
+          id="mobile"
+          placeholder="Enter mobile number"
+          required
+        >
+
+        <!-- EMAIL -->
+        <label for="email"><strong>Email:</strong></label>
+        <input
+          type="email"
+          id="email" required
+          placeholder="Enter email"
+        >
+
+        <!-- PASSWORD -->
+        <label for="password"><strong>Create Password:</strong></label>
+        <input
+          type="password"
+          id="password"
+          placeholder="Create a password"
+          required
+        >
+
+        <!-- REGISTER BUTTON -->
+        <button type="submit">Register & Continue</button>
+
+      </form>
+
+      <p id="register-status"></p>
+
+
+    </div>
+  </section>
+
+  <!-- OWNER VIEW BUTTON -->
+  <button class="owner-shortcut-btn" onclick="window.location.href='owner.html'">
+    Owner View
+  </button>
+
+</body>
+</html>
