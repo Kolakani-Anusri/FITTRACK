@@ -36,21 +36,25 @@
       <input
         type="text"
         id="report-name"
-        placeholder="Enter the name mentioned on the report"
+        placeholder="Enter EXACT name used during registration"
+        required
       />
+      <p class="hint-text">
+        ⚠️ Name must match your registered name and report name exactly
+      </p>
 
-      <br><br>
+      <br>
 
       <!-- REPORT UPLOAD -->
       <label for="health-report"><strong>Upload Report (PDF / TXT):</strong></label>
-      <input type="file" id="health-report" accept=".pdf,.txt" />
+      <input type="file" id="health-report" accept=".pdf,.txt" required />
       <p id="report-status" class="status-text"></p>
 
       <br>
 
       <!-- GENDER CONFIRMATION -->
       <label for="confirm-gender"><strong>Confirm Gender:</strong></label>
-      <select id="confirm-gender">
+      <select id="confirm-gender" required>
         <option value="">Select</option>
         <option value="male">Male</option>
         <option value="female">Female</option>
@@ -60,7 +64,7 @@
 
       <!-- CITY SELECTION -->
       <label for="city-select"><strong>Select Consulting Location:</strong></label>
-      <select id="city-select">
+      <select id="city-select" required>
         <option value="">Select</option>
         <option value="hyderabad">Hyderabad</option>
         <option value="mumbai">Mumbai</option>
@@ -72,7 +76,6 @@
 
       <br><br>
 
-
       <!-- EVALUATE BUTTON -->
       <button id="evaluateBtn" type="button">
         Upload & Evaluate with AI
@@ -80,25 +83,17 @@
 
       <br><br>
 
+      <!-- LOADER -->
       <div id="ai-loader" class="hidden">
         <div class="spinner"></div>
         <p>AI is analyzing your report… Please wait</p>
       </div>
 
+      <!-- AI STATUS -->
+      <div id="ai-status" class="status-text" style="display:none;"></div>
 
-
-      <!-- AI STATUS (HIDDEN BY DEFAULT) -->
-      <div
-        id="ai-status"
-        class="status-text"
-        style="display:none;"
-      ></div>
-
-      <!-- AI RESULT (HIDDEN BY DEFAULT) -->
-      <div
-        id="ai-result"
-        style="display:none; margin-top:20px;"
-      ></div>
+      <!-- AI RESULT -->
+      <div id="ai-result" style="display:none; margin-top:20px;"></div>
 
       <br>
 

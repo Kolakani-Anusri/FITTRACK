@@ -510,6 +510,7 @@ function initEvaluationUpload() {
 
     const formData = new FormData();
     formData.append("report", file);
+    formData.append("reportName", currentUser.name);
     formData.append("userMeta", JSON.stringify(userMeta));
 
     try {
@@ -517,8 +518,13 @@ function initEvaluationUpload() {
       evaluateBtn.disabled = true;
       evaluateBtn.innerText = "Evaluating… Please wait";
 
+      const token = localStorage.getItem("fittrack_token");
+
       const response = await fetch(`${API_BASE}/ai-evaluate-pdf`, {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`, // 🔐 IMPORTANT
+        },
         body: formData,
       });
 
