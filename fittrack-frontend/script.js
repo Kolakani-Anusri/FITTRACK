@@ -4,6 +4,7 @@
 const API_BASE = "https://fittrack-backend-845g.onrender.com"; // ← use your Render URL
 
 
+
 // ===============================================
 // STEP 1: WEEKLY PLAN TABLE HELPERS (GLOBAL)
 // ===============================================
@@ -510,7 +511,7 @@ function initEvaluationUpload() {
 
     const formData = new FormData();
     formData.append("report", file);
-    formData.append("reportName", currentUser.name);
+    formData.append("reportName", reportNameInput.value.trim());;
     formData.append("userMeta", JSON.stringify(userMeta));
 
     try {
@@ -522,9 +523,7 @@ function initEvaluationUpload() {
 
       const response = await fetch(`${API_BASE}/ai-evaluate-pdf`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`, // 🔐 IMPORTANT
-        },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,
       });
 
@@ -1830,13 +1829,14 @@ function initLoginPage() {
       });
     }
 
-    if (response.ok) {
+    if (resInfo.ok) {
+      const {user, token } = resInfo.data || {};
       // ✅ SAVE LOGIN SESSION (OPTION A)
-      localStorage.setItem("fittrack_token", data.token);
-      localStorage.setItem("fittrack_current_user", JSON.stringify(data.user));
+      localStorage.setItem("fittrack_token", token);
+      localStorage.setItem("fittrack_current_user", JSON.stringify(user));
 
       // optional: redirect
-      window.location.href = "plans.html";
+      window.location.href = "evaluation.html";
     }
 
 
@@ -1849,24 +1849,6 @@ function initLoginPage() {
   });
 }
 
-// ===============================================
-// PAGE CONTROLLER
-// ===============================================
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("script.js loaded");
-
-  initLoader(); // ✅ THIS LINE IS IMPORTANT
-
-  if (document.getElementById("health-report")) {
-    console.log("evaluation.html detected");
-    initEvaluationUpload();
-  }
-
-  if (document.getElementById("detailed-report")) {
-    console.log("eval_result.html detected");
-    initEvaluationResultPage();
-  }
-});
 
 /* ===========================
    REGISTER PAGE LOGIC
@@ -1965,11 +1947,25 @@ if (registerBtn) {
   });
 }
 
-// keep this as-is
-if (window.location.pathname.includes("plans")) {
-  loadDietWorkoutPlan();
-}
-
 document.addEventListener("DOMContentLoaded", () => {
-  initPlansPage();
+  console.log("script.js loaded");
+
+  initLoader();
+
+  if (window.location.pathname.includes("register")) {
+    initRegistration();
+  }
+
+  if (window.location.pathname.includes("evaluation")) {
+    initEvaluationUpload();
+  }
+
+  if (window.location.pathname.includes("eval_result")) {
+    initEvaluationResultPage();
+  }
+
+  if (window.location.pathname.includes("plans")) {
+    initPlansPage();
+    loadDietWorkoutPlan(); // ✅ ADD HERE
+  }
 });
